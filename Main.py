@@ -13,18 +13,18 @@ main_lab.pack()
 
 init_vals = {}
 
-def create_initial_vals(n,m, vals):
-    for i in range(m):
-        for j in range(n):
-            vals[f'{i},{j}'] = ''
-    return vals
-
+"""
+Initializes a dictionary of empty strings on first start
+"""
 def create_initial_vals(n,m, vals):
     for i in range(m):
         for j in range(n):
             vals[f'{j + 1},{i + 1}'] = ''
     return vals
 
+"""
+Creates GUI grid component for visualizing solutions
+"""
 def create_grid(n, m, vals):
     for i in range(m):
         for j in range(n):
@@ -39,6 +39,9 @@ def create_grid(n, m, vals):
 
 entries = []
 
+"""
+Creates the user input row
+"""
 def create_input_row(n):
     for i in range(n):
         frame = tk.Frame(
@@ -51,6 +54,9 @@ def create_input_row(n):
         entry.pack()
         entries.append(entry)
 
+"""
+Start up initialization
+"""
 init_vals = create_initial_vals(10, 2, init_vals)
 create_grid(10, 2, init_vals)
 create_input_row(10)
@@ -61,16 +67,17 @@ seperator = ttk.Separator(window, orient='horizontal')
 seperator.pack(fill='x')
 
 controls = tk.Frame()
-run = tk.Button(master=controls, text='Run', command=lambda: test_run())
+run = tk.Button(master=controls, text='Run', command=lambda: run())
 
 run.pack(side=LEFT)
 
 controls.pack()
 
-class Context:
-    def size(self, n):
-        return n
-
+"""
+On the creation of a successful model, the model is passed into this function
+where the strings are split into component parts and reassembled into a dictionary
+with X,Y coordinates as the key and the solution number as the value.
+"""
 def on_model(m):
     m = str(m).replace('sol(', '').replace(')', ' ')
     sol_list = m.split(' ')
@@ -78,7 +85,11 @@ def on_model(m):
     sol_list = [[','.join(x[:2]), '2'.join(x[2:])] for x in sol_list]
     vals = {key: value for (key, value) in sol_list}
     create_grid(10, 2, vals)
-
+"""
+Grabs the user inputs (which are the totals to be summed) and creates the sums
+in the form of sum(X,Y,N), which are just concatenated together and later interpolated
+into the ASP program. 
+"""
 def create_sums():
     sums = ''
     x_index = 1
@@ -87,7 +98,10 @@ def create_sums():
         x_index += 1
     return sums
 
-def test_run():
+"""
+Runs the clingo program which has the sums interoplated into it.
+"""
+def run():
     ctl = clingo.Control()
     sums = create_sums()
     ctl.add("base", [], f"""
@@ -119,8 +133,6 @@ def test_run():
 
     """)
     ctl.ground([("base", [])])
-    # create_grid(int(size_entry.get()))
     ctl.solve(on_model=on_model)
-
 
 window.mainloop()
